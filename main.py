@@ -9,6 +9,8 @@ from openai import BaseModel
 from pydantic import AnyUrl, Field
 import readabilipy
 from pathlib import Path
+import pypandoc
+
 
 TOKEN = "387fd01f59ad"
 MY_NUMBER = "919321620859"  # Insert your number {91}{Your number}
@@ -139,15 +141,19 @@ no extra formatting.",
 async def resume() -> str:
     """
     Return your resume exactly as markdown text.
-    
-    TODO: Implement this function to:
-    1. Find and read your resume.
-    2. Convert the resume to markdown format.
-    3. Handle any errors gracefully.
-    4. Return the resume as markdown text.
     """
-    # TODO: Implement resume fetching logic
-    raise NotImplementedError("Resume tool not implemented")
+    # Path to your resume file (change if needed)
+    resume_path = Path("resume.pdf")  # or Path("resume.docx")
+
+    if not resume_path.exists():
+        return f"<error>Resume file not found at {resume_path}</error>"
+
+    try:
+        # Convert to markdown
+        md_text = pypandoc.convert_file(str(resume_path), "md", extra_args=["--standalone"])
+        return md_text
+    except Exception as e:
+        return f"<error>Failed to convert resume: {e}</error>"
 
 
 @mcp.tool
