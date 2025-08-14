@@ -142,6 +142,7 @@ async def resume() -> str:
     """
     Return your resume exactly as markdown text.
     """
+    print("resume calling")
     # Path to your resume file (change if needed)
     resume_path = Path("resume.pdf")  # or Path("resume.docx")
 
@@ -151,6 +152,7 @@ async def resume() -> str:
     try:
         # Convert to markdown
         md_text = pypandoc.convert_file(str(resume_path), "md", extra_args=["--standalone"])
+        print(md_text)
         return md_text
     except Exception as e:
         return f"<error>Failed to convert resume: {e}</error>"
