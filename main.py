@@ -2,7 +2,7 @@ from typing import Annotated
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.bearer import BearerAuthProvider, RSAKeyPair
 import markdownify
-from mcp import ErrorData, McpError, Tool
+from mcp import ErrorData, McpError, tool
 from mcp.server.auth.provider import AccessToken
 from mcp.types import INTERNAL_ERROR, INVALID_PARAMS, TextContent
 from openai import BaseModel
@@ -143,7 +143,7 @@ ResumeToolDescription = {
     "description": "Returns the resume exactly as markdown text."
 }
 
-@Tool(description=ResumeToolDescription["description"])
+@tool(description=ResumeToolDescription["description"])
 async def resume() -> str:
     """
     Reads resume.pdf, converts it to markdown using Pandoc, and returns it.
