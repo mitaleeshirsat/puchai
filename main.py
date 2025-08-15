@@ -2,7 +2,7 @@ from typing import Annotated
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.bearer import BearerAuthProvider, RSAKeyPair
 import markdownify
-from mcp import ErrorData, McpError
+from mcp import ErrorData, McpError, Tool
 from mcp.server.auth.provider import AccessToken
 from mcp.types import INTERNAL_ERROR, INVALID_PARAMS, TextContent
 from openai import BaseModel
@@ -10,7 +10,7 @@ from pydantic import AnyUrl, Field
 import readabilipy
 from pathlib import Path
 import pypandoc
-import pandoc
+import os
 
 
 TOKEN = "387fd01f59ad"
@@ -138,25 +138,28 @@ no extra formatting.",
     side_effects=None,
 )
 
-@mcp.tool(description=ResumeToolDescription.model_dump_json())
+ResumeToolDescription = {
+    "name": "resume",
+    "description": "Returns the resume exactly as markdown text."
+}
+
+@Tool(description=ResumeToolDescription["description"])
 async def resume() -> str:
     """
-    Return your resume exactly as markdown text.
+    Reads resume.pdf, converts it to markdown using Pandoc, and returns it.
     """
-    print("resume calling")
-    # Path to your resume file (change if needed)
-    resume_path = Path("resume.pdf")  # or Path("resume.docx")
-
-    if not resume_path.exists():
-        return f"<error>Resume file not found at {resume_path}</error>"
-
     try:
-        # Convert to markdown
-        md_text = pypandoc.convert_file(str(resume_path), "md", extra_args=["--standalone"])
-        print(md_text)
-        return md_text
+        resume_path = "resume.pdf"  # Change path if resume is in a different folder
+        if not os.path.exists(resume_path):
+            return "Error: resume.pdf not found."
+
+        # Convert PDF to Markdown
+        markdown_text = pypandoc.convert_file(resume_path, 'md', extra_args=['--standalone'])
+
+        return markdown_text
+
     except Exception as e:
-        return f"<error>Failed to convert resume: {e}</error>"
+        return f"Error reading resume: {str(e)}"
 
 
 @mcp.tool
