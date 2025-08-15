@@ -11,7 +11,7 @@ import readabilipy
 from pathlib import Path
 import pypandoc
 import os
-
+pypandoc.download_pandoc()
 
 TOKEN = "387fd01f59ad"
 MY_NUMBER = "919321620859"  # Insert your number {91}{Your number}
