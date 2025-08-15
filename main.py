@@ -10,6 +10,7 @@ from pydantic import AnyUrl, Field
 import readabilipy
 from pathlib import Path
 import pypandoc
+import pandoc
 
 
 TOKEN = "387fd01f59ad"
