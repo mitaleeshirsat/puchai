@@ -2,7 +2,7 @@ from typing import Annotated
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.bearer import BearerAuthProvider, RSAKeyPair
 import markdownify
-from mcp import ErrorData, McpError, tool
+from mcp import ErrorData, McpError
 from mcp.server.auth.provider import AccessToken
 from mcp.types import INTERNAL_ERROR, INVALID_PARAMS, TextContent
 from openai import BaseModel
@@ -138,28 +138,28 @@ no extra formatting.",
     side_effects=None,
 )
 
-ResumeToolDescription = {
-    "name": "resume",
-    "description": "Returns the resume exactly as markdown text."
-}
-
-@tool(description=ResumeToolDescription["description"])
+@mcp.tool(description="Return your resume exactly as markdown text.")
 async def resume() -> str:
     """
-    Reads resume.pdf, converts it to markdown using Pandoc, and returns it.
+    Reads resume.pdf, converts it to markdown, and returns the text.
     """
+    resume_path = "resume.pdf"
+
     try:
-        resume_path = "resume.pdf"  # Change path if resume is in a different folder
         if not os.path.exists(resume_path):
-            return "Error: resume.pdf not found."
+            return "Error: resume.pdf not found in the current directory."
 
         # Convert PDF to Markdown
-        markdown_text = pypandoc.convert_file(resume_path, 'md', extra_args=['--standalone'])
+        markdown_text = pypandoc.convert_file(
+            resume_path,
+            "md",
+            extra_args=["--standalone"]
+        )
 
-        return markdown_text
+        return markdown_text.strip() if markdown_text else "Error: Conversion returned empty content."
 
     except Exception as e:
-        return f"Error reading resume: {str(e)}"
+        return f"Error while reading/converting resume: {str(e)}"
 
 
 @mcp.tool
