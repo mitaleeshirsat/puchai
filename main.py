@@ -9,9 +9,9 @@ from openai import BaseModel
 from pydantic import AnyUrl, Field
 import readabilipy
 from pathlib import Path
-import pypandoc
 import os
-pypandoc.download_pandoc()
+import pdfplumber
+
 
 TOKEN = "387fd01f59ad"
 MY_NUMBER = "919321620859"  # Insert your number {91}{Your number}
@@ -141,7 +141,8 @@ no extra formatting.",
 @mcp.tool(description="Return your resume exactly as markdown text.")
 async def resume() -> str:
     """
-    Reads resume.pdf, converts it to markdown, and returns the text.
+    Reads resume.pdf, converts it to markdown-like text, and returns the text.
+    This version uses pdfplumber instead of Pandoc so it works in read-only environments.
     """
     resume_path = "resume.pdf"
 
@@ -149,18 +150,20 @@ async def resume() -> str:
         if not os.path.exists(resume_path):
             return "Error: resume.pdf not found in the current directory."
 
-        # Convert PDF to Markdown
-        markdown_text = pypandoc.convert_file(
-            resume_path,
-            "md",
-            extra_args=["--standalone"]
-        )
+        # Extract text from PDF
+        with pdfplumber.open(resume_path) as pdf:
+            text = "\n".join(page.extract_text() or "" for page in pdf.pages)
 
-        return markdown_text.strip() if markdown_text else "Error: Conversion returned empty content."
+        if not text.strip():
+            return "Error: No text could be extracted from the PDF."
+
+        # Optional: very light Markdown formatting (convert multiple newlines to section breaks)
+        markdown_text = "\n\n".join(line.strip() for line in text.split("\n") if line.strip())
+
+        return markdown_text
 
     except Exception as e:
         return f"Error while reading/converting resume: {str(e)}"
-
 
 @mcp.tool
 async def validate() -> str:
