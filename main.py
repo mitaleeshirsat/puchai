@@ -10,7 +10,8 @@ from pydantic import AnyUrl, Field
 import readabilipy
 from pathlib import Path
 import os
-import pdfplumber
+import pypandoc
+# import pdfplumber
 
 
 TOKEN = "387fd01f59ad"
@@ -138,32 +139,55 @@ no extra formatting.",
     side_effects=None,
 )
 
-@mcp.tool(description="Return your resume exactly as markdown text.")
+# @mcp.tool(description="Return your resume exactly as markdown text.")
+# async def resume() -> str:
+#     """
+#     Reads resume.pdf, converts it to markdown-like text, and returns the text.
+#     This version uses pdfplumber instead of Pandoc so it works in read-only environments.
+#     """
+#     resume_path = "resume.pdf"
+
+#     try:
+#         if not os.path.exists(resume_path):
+#             return "Error: resume.pdf not found in the current directory."
+
+#         # Extract text from PDF
+#         with pdfplumber.open(resume_path) as pdf:
+#             text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+
+#         if not text.strip():
+#             return "Error: No text could be extracted from the PDF."
+
+#         # Optional: very light Markdown formatting (convert multiple newlines to section breaks)
+#         markdown_text = "\n\n".join(line.strip() for line in text.split("\n") if line.strip())
+
+#         return markdown_text
+
+#     except Exception as e:
+#         return f"Error while reading/converting resume: {str(e)}"
+
+
+@mcp.tool(description="Return your resume as markdown text")
 async def resume() -> str:
     """
-    Reads resume.pdf, converts it to markdown-like text, and returns the text.
-    This version uses pdfplumber instead of Pandoc so it works in read-only environments.
+    Reads resume.pdf, converts it to markdown, and returns it.
     """
-    resume_path = "resume.pdf"
-
     try:
+        resume_path = "resume.pdf"
         if not os.path.exists(resume_path):
-            return "Error: resume.pdf not found in the current directory."
+            return "Error: resume.pdf not found."
 
-        # Extract text from PDF
-        with pdfplumber.open(resume_path) as pdf:
-            text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-
-        if not text.strip():
-            return "Error: No text could be extracted from the PDF."
-
-        # Optional: very light Markdown formatting (convert multiple newlines to section breaks)
-        markdown_text = "\n\n".join(line.strip() for line in text.split("\n") if line.strip())
-
+        # Convert PDF → Markdown
+        markdown_text = pypandoc.convert_file(
+            resume_path, "md", extra_args=["--standalone"]
+        )
+        
+        # Must return as string (so MCP client can forward it)
         return markdown_text
-
+    
     except Exception as e:
-        return f"Error while reading/converting resume: {str(e)}"
+        return f"Error converting resume: {e}"
+
 
 @mcp.tool
 async def validate() -> str:
